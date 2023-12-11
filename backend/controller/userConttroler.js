@@ -42,6 +42,7 @@ exports.loginUser = asyncWrapper(async (req, res, next) => {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
 
+  console.log("ready for JTW token");
   sendJWtToken(user, 200, res);
 });
 
@@ -60,7 +61,7 @@ exports.logoutUser = asyncWrapper(async (req, res) => {
   });
 });
 
-//// Forgot Password 
+// Forgot Password 
 exports.forgotPassword = asyncWrapper(async (req, res, next) => {
   const user = await userModel.findOne({ email: req.body.email });
 
@@ -232,7 +233,7 @@ exports.getSingleUser = asyncWrapper(async (req, res, next) => {
   });
 });
 
-//update User Role -- Admin {may admin can change any user to admin}
+// update User Role -- Admin {may admin can change any user to admin}
 exports.updateUserRole = asyncWrapper(async (req, res, next) => {
   // add set new role of user
   const newUserData = {
@@ -252,7 +253,6 @@ exports.updateUserRole = asyncWrapper(async (req, res, next) => {
 });
 
 // delete user --Admin(only admin can delete user)
-
 exports.deleteUser = asyncWrapper(async (req, res, next) => {
   const user = await userModel.findById(req.params.id);
   // when no user found with that id
