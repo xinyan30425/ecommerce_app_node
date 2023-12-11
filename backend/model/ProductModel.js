@@ -2,13 +2,14 @@ const mongoose  = require("mongoose");
 const productSchema = mongoose.Schema({
   name: {
     type: String,
-    required: [true, "Please Enter prodcut name"],
+    required: [true, "Please Enter product name"],
     trim: true,
   },
   description: {
     type: String,
-    required: [true, "Please Enter prodcut description"],
+    required: [true, "Please Enter product description"],
   },
+  
   price: {
     type: Number,
     required: [true, "Please Enter product Price"],
@@ -37,14 +38,9 @@ const productSchema = mongoose.Schema({
   ],
   category: {
     type: String,
-    required: [true, "Please eneter Product Category"],
+    required: [true, "Please enter Product Category"],
   },
-  // Stock: {
-  //   type: Number,
-  //   required: [true, "please Enter product stock"],
-  //   maxLength: [4, "Stock cannot exceed 4 characters"],
-  //   default: 1,
-  // },
+
   numOfReviews: {
     type: Number,
     default: 0,
@@ -86,9 +82,9 @@ const productSchema = mongoose.Schema({
       },
     },
   ],
-  // when two admins are there. tab ye pta chalgea kiss admin ne product add kiya hai
+ 
   user: {
-    type: mongoose.Schema.ObjectId, //  this is for admin who will add the prduct to the db
+    type: mongoose.Schema.ObjectId, 
     ref: "userModel",
     required: true,
   },

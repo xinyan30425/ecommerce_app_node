@@ -3,7 +3,7 @@ const orderModel = require("../model/orderModel");
 const productModel = require("../model/ProductModel");
 const ErrorHandler = require("../utils/errorHandler");
 
-//>>>>>>>>>>>>>>>  create a order    >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 exports.newOrder = asyncWrapper(async (req, res, next) => {
   const {
     shippingInfo,
@@ -17,7 +17,7 @@ exports.newOrder = asyncWrapper(async (req, res, next) => {
 
 });
 
-//>>>>>>>>>>>> getSingleOrder >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 exports.getSingleOrder = asyncWrapper(async (req, res, next) => {
   const order = await orderModel
     .findById(req.params.id)
@@ -32,7 +32,7 @@ exports.getSingleOrder = asyncWrapper(async (req, res, next) => {
   });
 });
 
-// >>>>>>>>>>>>>>>> getUsers all orders >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
 
 exports.myOrders = asyncWrapper(async (req, res) => {
   const userOrders = await orderModel.find({ user: req.user._id }); // this id from authentictaion user.req
@@ -43,7 +43,6 @@ exports.myOrders = asyncWrapper(async (req, res) => {
   });
 });
 
-//>>>>>>>>>>>>>>>>>>>>>>>>>>> get all Orders -- Admin>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 exports.getAllOrders = asyncWrapper(async (req, res, next) => {
   const orders = await orderModel.find();
@@ -74,8 +73,6 @@ exports.updateOrder = asyncWrapper(async (req, res, next) => {
     return next(new ErrorHandler("You have already delivered this order", 400));
   }
 
-  // when orderd is shipped and need to update order status to deliverd then. pass order id updateStock function and also pass quantity of the product
-  // orderItems is the array of object in orderSchema with {name , productId , quantity , phoneNo .. so on}propoerty
     if (req.body.status === "Shipped"){
  order.orderItems.forEach(async (orderItem) => {
    await updateStock(orderItem.productId, orderItem.quantity);
@@ -83,10 +80,9 @@ exports.updateOrder = asyncWrapper(async (req, res, next) => {
     }
  
 
-  // once order quantity is reduced in productModel then update status as oredrStatus well
   order.orderStatus = req.body.status;
  
-  // now also set delivery time once order Delivered:
+
   if (order.orderStatus === "Delivered") {
     order.deliveredAt = Date.now();
   }
@@ -98,7 +94,7 @@ exports.updateOrder = asyncWrapper(async (req, res, next) => {
   });
 });
 
-// update status function with. productId and quantity params
+
 async function updateStock(id, quantity) {
   try {
     const product = await productModel.findById(id);
@@ -106,7 +102,7 @@ async function updateStock(id, quantity) {
       throw new ErrorHandler("Product not found", 404); 
     }
 
-    // Update the stock of the product using the order quantity
+
     product.Stock -= quantity;
 
     await product.save({ validateBeforeSave: false });
@@ -115,7 +111,6 @@ async function updateStock(id, quantity) {
   }
 }
 
-//>>>>>>>>>>>>>>>>>>>>> delete Order -- Admin >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 exports.deleteOrder = asyncWrapper(async (req, res, next) => {
   const order = await orderModel.findById(req.params.id);
 

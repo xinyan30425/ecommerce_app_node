@@ -7,7 +7,6 @@ const crypto = require("crypto");
 const cloudinary = require("cloudinary");
 
 
-// signUp controller>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 exports.registerUser = asyncWrapper(async (req, res) => {
 
 
@@ -17,17 +16,13 @@ exports.registerUser = asyncWrapper(async (req, res) => {
     password,
     email,
     role,
-    // avatar: {
-    //   public_id: myCloud.public_id,
-    //   url: myCloud.secure_url,
-    // },
   });
 
-  // sending the res and staus code along with token using sendJWtToken method
+
   sendJWtToken(user, 201, res);
 });
 
-// Login User >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// Login User
 exports.loginUser = asyncWrapper(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -35,17 +30,14 @@ exports.loginUser = asyncWrapper(async (req, res, next) => {
   if (!email || !password) {
     return next(new ErrorHandler("Please Enter Email & Password", 400));
   }
-  const user = await userModel.findOne({ email }).select("+password"); // .select("+password") because in schema we set set select : false so password is'nt return to anyone so we add +password here for verfication of pass
+  const user = await userModel.findOne({ email }).select("+password"); 
 
-  // jab user nhi mila data base main given credentials ke sath tab
+
   if (!user) {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
-
-  // comparePassword method defind in useSchema by use . it will comapre this password to hashfrom password at database
   const isPasswordMatched = await user.comparePassword(password);
 
-  // when password not mathced with original hashed password
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid email or password", 401));
   }
@@ -53,8 +45,7 @@ exports.loginUser = asyncWrapper(async (req, res, next) => {
   sendJWtToken(user, 200, res);
 });
 
-// logOut Controller =>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
+// logOut Controller
 exports.logoutUser = asyncWrapper(async (req, res) => {
   // delete token for logingOut user =>
   res.cookie("token", null, {
@@ -69,7 +60,7 @@ exports.logoutUser = asyncWrapper(async (req, res) => {
   });
 });
 
-//// Forgot Password >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//// Forgot Password 
 exports.forgotPassword = asyncWrapper(async (req, res, next) => {
   const user = await userModel.findOne({ email: req.body.email });
 
@@ -79,8 +70,8 @@ exports.forgotPassword = asyncWrapper(async (req, res, next) => {
   }
 
   // Get ResetPassword Token
-  const resetToken = user.getResetPasswordToken(); // we made this method into userModel for hash resetToken
-  //when we call this metod  getResetPasswordToken  . so in userModel resetPasswordToken has reset token added and resetPasswordExprie also exprie value added but not saved to data base
+  const resetToken = user.getResetPasswordToken(); 
+
   await user.save({ validateBeforeSave: false }); // now save
 
   let resetPasswordUrl = "";
@@ -98,7 +89,6 @@ exports.forgotPassword = asyncWrapper(async (req, res, next) => {
 
   try {
     await sendEmail({
-      // sendEmail is method writen by us in utils folder.
       email: user.email,
       subject: `Ecommerce Password Recovery`,
       message,
@@ -109,7 +99,6 @@ exports.forgotPassword = asyncWrapper(async (req, res, next) => {
       message: `Email sent to ${user.email} successfully`,
     });
   } catch (error) {
-    // if there any Error then  user.resetPasswordToken and user.resetPasswordExpire has value saved already then undefined both od them for fresh value if user want to try again
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 
@@ -119,23 +108,18 @@ exports.forgotPassword = asyncWrapper(async (req, res, next) => {
   }
 });
 
-//>>>>>>>>>>>>>>> reset and update password :
+//reset and update password :
 exports.resetPassword = asyncWrapper(async (req, res, next) => {
-  // creating token hash because we save resetPasswordToken  in hash form. and we send to user resetToken in hex bytes form in url . now converting that byte form to hex form for matching does user given reset token is same or not which one save in Database
-  // we will extract reset token from req.params.token because we sended that token inside nodemailer message url when user will click on that link he will redirect on that  url
-
   const resetPasswordToken = crypto
     .createHash("sha256")
     .update(req.params.token)
     .toString("hex");
 
-  // now find that user with that hash token in db
   const user = await userModel.findOne({
     resetPasswordToken,
-    resetPasswordExpire: { $gt: Date.now() }, // if resetPasswordExpire {gt : => greater than} currDate  cheking is token expires or not
+    resetPasswordExpire: { $gt: Date.now() }, 
   });
 
-  // if user not with that token or expire token
   if (!user) {
     return next(
       new ErrorHandler(
@@ -145,8 +129,6 @@ exports.resetPassword = asyncWrapper(async (req, res, next) => {
     );
   }
 
-  // when new pass or confirm pass are not same
-
   if (req.body.password !== req.body.confirmPassword) {
     return next(
       new ErrorHandler("Password does not equal to confirmPassword", 400)
@@ -155,17 +137,16 @@ exports.resetPassword = asyncWrapper(async (req, res, next) => {
 
   // set that new password
   user.password = req.body.password;
-  //once pass set then no need token in data base untll user not reset the pass
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
 
-  // savw change to db
+  // save change to db
   await user.save();
   // this will send new token to user  bcz user succesfully logged in with new pass
   sendJWtToken(user, 200, res);
 });
 
-//// Get User Detail  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//// Get User Detail
 exports.getUserDetails = asyncWrapper(async (req, res) => {
 
   const user = await userModel.findById(req.user.id); // user.id because we set that user into as user.req when user gose autentiction. becauae all data of users set into req.user. only user when logged in then access this function
@@ -175,7 +156,7 @@ exports.getUserDetails = asyncWrapper(async (req, res) => {
   });
 });
 
-// update User password>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// update User password
 exports.updatePassword = asyncWrapper(async (req, res, next) => {
   const user = await userModel.findById(req.user.id).select("+password"); // + password because pass not allowed in shcema to acsess
    
@@ -194,7 +175,7 @@ exports.updatePassword = asyncWrapper(async (req, res, next) => {
   sendJWtToken(user, 200, res);
 });
 
-//>>>>>> Update user Profile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//Update user Profile
 exports.updateProfile = asyncWrapper(async (req, res, next) => {
   // object with user new data
   const newUserData = {
@@ -202,12 +183,11 @@ exports.updateProfile = asyncWrapper(async (req, res, next) => {
     email: req.body.email,
   };
 
-  // if avatar not empty then
+
   if (req.body.avatar !== "") {
     const user = await userModel.findById(req.user.id);
     const imageId = user.avatar.public_id;
 
-    //  await cloudinary.v2.uploader.destroy(imageId); // delete old Image from cloudnairy
     await cloudinary.v2.uploader.destroy(imageId);
 
     const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
@@ -236,7 +216,7 @@ exports.updateProfile = asyncWrapper(async (req, res, next) => {
   });
 });
 
-//>> Get single user (admin) Access only>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// Get single user (admin) Access only
 exports.getSingleUser = asyncWrapper(async (req, res, next) => {
   const user = await userModel.findById(req.params.id);
   // if user not found with that id
@@ -252,7 +232,7 @@ exports.getSingleUser = asyncWrapper(async (req, res, next) => {
   });
 });
 
-//>>>> update User Role -- Admin {may admin can change any user to admin}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//update User Role -- Admin {may admin can change any user to admin}
 exports.updateUserRole = asyncWrapper(async (req, res, next) => {
   // add set new role of user
   const newUserData = {
@@ -271,7 +251,7 @@ exports.updateUserRole = asyncWrapper(async (req, res, next) => {
   });
 });
 
-// delete user --Admin(only admin can delete user)>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// delete user --Admin(only admin can delete user)
 
 exports.deleteUser = asyncWrapper(async (req, res, next) => {
   const user = await userModel.findById(req.params.id);
@@ -295,7 +275,7 @@ exports.deleteUser = asyncWrapper(async (req, res, next) => {
   });
 });
 
-// getAll user Admin>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+// getAll user Admin
 exports.getAllUser = asyncWrapper(async (req, res, next) => {
   const users = await userModel.find();
 
