@@ -3,15 +3,15 @@ const dotenv = require("dotenv");
 const connectDB = require("./db/connectDB")
 const cloudinary = require("cloudinary");
 
-process.on("uncaughtException" , (err) =>{
-    console.log(`Error , ${err.message}`);
-    console.log(`Shutting down the server due to Uncaught Exception`);
-    process.exit(1);
+process.on("uncaughtException", (err) => {
+  console.log(`Error , ${err.message}`);
+  console.log(`Shutting down the server due to Uncaught Exception`);
+  process.exit(1);
 })
 
 
 
- dotenv.config({path : "backend/config/config.env"})
+dotenv.config({ path: "backend/config/config.env" })
 // Connect With MongoDB
 connectDB();
 
@@ -28,11 +28,11 @@ const server = app.listen(PORT, () => {
 });
 
 
-process.on("unhandledRejection" , (err) =>{ 
-    console.log(`Error : ${err.message}`);
-    console.log(`Shutting down the server due to Unhandled Promise Rejection`);
-server.close(() =>{
+process.on("unhandledRejection", (err) => {
+  console.log(`Error : ${err.message}`);
+  console.log(`Shutting down the server due to Unhandled Promise Rejection`);
+  server.close(() => {
     process.exit(1);
-})
-    
+  })
+
 })

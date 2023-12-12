@@ -27,7 +27,11 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(fileUpload());
 app.use(errorMiddleware);
-app.use(cors());
+app.use(cors({
+  credentials: true,
+  origin: `http://localhost:3000`,
+  optionsSuccessStatus: 204
+}));
 
 app.use("/api/v1", product);
 app.use("/api/v1", user);
