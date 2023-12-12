@@ -4,9 +4,14 @@ const asyncWrapper = require("../middleWare/asyncWrapper");
 const ApiFeatures = require("../utils/apiFeatures");
 const cloudinary = require("cloudinary");
 
+cloudinary.v2.config({
+  cloud_name: 'duegmceyx',
+  api_key: '869862165372421',
+  api_secret: 'Fy4QPkjX744lJRP0kfILCnVqcb0'
+});
 
 exports.createProduct = asyncWrapper(async (req, res) => {
-  let images = []; 
+  let images = [];
 
   if (req.body.images) {
     if (typeof req.body.images === "string") {
@@ -26,13 +31,17 @@ exports.createProduct = asyncWrapper(async (req, res) => {
       const uploadPromises = chunk.map((img) =>
         cloudinary.v2.uploader.upload(img, {
           folder: "Products",
-        })
+        },
+          (err, res) => {
+            if (err) {
+              console.log("Create error", err)
+            }
+          })
       );
 
-      
-      const results = await Promise.all(uploadPromises); 
+      const results = await Promise.all(uploadPromises);
 
-      for (let result of results) { 
+      for (let result of results) {
         imagesLinks.push({
           product_id: result.public_id,
           url: result.secure_url,
@@ -40,33 +49,35 @@ exports.createProduct = asyncWrapper(async (req, res) => {
       }
     }
 
-    req.body.user = req.user.id;
     req.body.images = imagesLinks;
   }
 
-  const data = await ProductModel.create(req.body);
+  req.body.user = req.user.id;
+  // console.log(req.body)
 
+  const data = await ProductModel.create(req.body);
+  console.log(data)
   res.status(200).json({ success: true, data: data });
 });
 
 
 exports.getAllProducts = asyncWrapper(async (req, res) => {
-  const resultPerPage = 6; 
-  const productsCount = await ProductModel.countDocuments(); 
+  const resultPerPage = 6;
+  const productsCount = await ProductModel.countDocuments();
 
 
   const apiFeature = new ApiFeatures(ProductModel.find(), req.query)
-    .search() 
-    .filter(); 
+    .search()
+    .filter();
 
-  let products = await apiFeature.query; 
+  let products = await apiFeature.query;
 
-  let filteredProductCount = products.length; 
+  let filteredProductCount = products.length;
 
   apiFeature.Pagination(resultPerPage);
 
 
-  products = await apiFeature.query.clone(); 
+  products = await apiFeature.query.clone();
 
   res.status(201).json({
     success: true,
@@ -80,7 +91,7 @@ exports.getAllProducts = asyncWrapper(async (req, res) => {
 exports.getAllProductsAdmin = asyncWrapper(async (req, res) => {
   const products = await ProductModel.find();
 
-  res.status(201).json({  
+  res.status(201).json({
     success: true,
     products,
   });
@@ -193,7 +204,7 @@ exports.createProductReview = asyncWrapper(async (req, res, next) => {
         rev.ratings = ratings;
         rev.comment = comment;
         rev.recommend = recommend;
-        
+
         rev.title = title;
         product.numOfReviews = product.reviews.length;
       }
@@ -240,28 +251,28 @@ exports.deleteReview = asyncWrapper(async (req, res, next) => {
   const product = await ProductModel.findById(req.query.productId);
 
   if (!product) {
-    return next(new ErrorHandler("Product not found", 404)); 
+    return next(new ErrorHandler("Product not found", 404));
   }
 
   const reviews = product.reviews.filter(
-    (rev) => { return rev._id.toString() !== req.query.id.toString()}
+    (rev) => { return rev._id.toString() !== req.query.id.toString() }
   );
 
   let avg = 0;
   reviews.forEach((rev) => {
-   
+
     avg += rev.ratings;
   });
 
 
-  
+
   let ratings = 0;
   if (reviews.length === 0) {
     ratings = 0;
   } else {
     ratings = avg / reviews.length;
   }
- 
+
   const numOfReviews = reviews.length;
 
   await ProductModel.findByIdAndUpdate(
