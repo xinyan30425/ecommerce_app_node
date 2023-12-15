@@ -7,7 +7,7 @@ const ErrorHandler = require("../utils/errorHandler");
 
 exports.isAuthentictedUser = asyncWrapper(async (req, res, next) => {
   const { token } = req.cookies;
-  res.send(req)
+  // res.send(req)
   // console.log(token)
   // if there is no token found
   if (!token) {
