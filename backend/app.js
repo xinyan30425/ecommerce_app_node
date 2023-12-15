@@ -29,7 +29,7 @@ app.use(fileUpload());
 app.use(errorMiddleware);
 app.use(cors({
   credentials: true,
-  origin: `https://cs5610-ecommerce-app-react.netlify.app`,
+  origin: [`http://localhost:3000`, 'https://cs5610-ecommerce-app-react.netlify.app'],
   optionsSuccessStatus: 204
 }));
 
